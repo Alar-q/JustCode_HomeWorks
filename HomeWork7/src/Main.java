@@ -1,17 +1,68 @@
-// Press Shift twice to open the Search Everywhere dialog and type `show whitespaces`,
-// then press Enter. You can now see whitespace characters in your code.
+import exceptions.AggregationException;
+import exceptions.EmptyListException;
+import exceptions.NoMatchesException;
+import exceptions.SortingException;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
 public class Main {
     public static void main(String[] args) {
-        // Press Alt+Enter with your caret at the highlighted text to see how
-        // IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome!");
+        try {
+            List<Person> people = new ArrayList<>(Arrays.asList(
+                    new Person("Charlie", 40),
+                    new Person("Alice", 30),
+                    new Person("Bob", 20),
+                    new Person("Max", 10),
+                    new Person(null, 30)
+            ));
 
-        // Press Shift+F10 or click the green arrow button in the gutter to run the code.
-        for (int i = 1; i <= 5; i++) {
+            if (people.isEmpty()){
+                throw new EmptyListException("Список пуст.");
+            }
 
-            // Press Shift+F9 to start debugging your code. We have set one breakpoint
-            // for you, but you can always add more by pressing Ctrl+F8.
-            System.out.println("i = " + i);
+            // Фильтрация
+            int ageLimit = 25;
+            people = people.stream()
+                    .filter(p -> p.age > ageLimit)
+                    .collect(Collectors.toList());
+
+            if (people.isEmpty()) {
+                throw new NoMatchesException("Нет данных, соответствующих условию.");
+            }
+
+            System.out.println("Сортировка: " + people);
+            // Сортировка
+            try {
+                people.sort(Comparator.comparing(p -> p.name));
+                // Collections.sort(people, (Person p1, Person p2)->{
+                //    return p1.name.compareTo(p2.name);
+                // });
+            }
+            catch(NullPointerException e){
+                throw new SortingException("Сортировка не удалась.");
+            }
+
+            System.out.println(people);
+
+            // Агрегация
+            String names = people.stream()
+                    .map(p -> {
+                        if (p.name == null) {
+                            throw new RuntimeException(new AggregationException("Агрегация данных не удалась."));
+                        }
+                        return p.name;
+                    })
+                    .collect(Collectors.joining(", "));
+
+            System.out.println(names);
+
+        }
+        catch (EmptyListException | NoMatchesException | SortingException e){
+            System.err.println(e.getMessage());
+        }
+        catch (RuntimeException e) {
+            System.err.println(e.getCause().getMessage());
         }
     }
 }
